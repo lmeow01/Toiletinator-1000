@@ -51,6 +51,7 @@ class SignupActivity : AppCompatActivity() {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
 
+
             if (isValidSignupDetails(firstName, lastName, email, password)) {
                 // Call function to perform sign-up
                 performSignUp(firstName, lastName, email, password)

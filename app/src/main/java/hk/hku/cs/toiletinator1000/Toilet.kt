@@ -15,6 +15,7 @@ class Toilet {
         this.latLng = latLng
     }
 
+
     fun getId(): String {
         return this.id
     }
@@ -30,4 +31,5 @@ class Toilet {
     fun getLatLng(): LatLng {
         return this.latLng
     }
+
 }
