@@ -6,7 +6,6 @@
     android:layout_height="?attr/actionBarSize"
     android:background="#5283b0"
     android:elevation="4dp"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-    app:navigationIcon="@drawable/menu_24px">
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
 </androidx.appcompat.widget.Toolbar>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ToiletDetailsActivity">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar" />
+
+    <TextView
+        android:id="@+id/toilet_details_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:layout_margin="4dp"
+        android:text="Toilet Location"/>
+
+    <TextView
+        android:id="@+id/toilet_details_stars"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:layout_margin="4dp"
+        android:text="Toilet Stars"/>
+
+    <LinearLayout
+        android:id="@+id/reviews_container"
+        android:layout_width="match_parent"
+        android:layout_margin="4dp"
+        android:layout_height="match_parent">
+
+        <fragment
+            android:id="@+id/reviews_fragment"
+            android:name="hk.hku.cs.toiletinator1000.ReviewsFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".ReviewsFragment" />
+    </LinearLayout>
+
+
+</LinearLayout>
