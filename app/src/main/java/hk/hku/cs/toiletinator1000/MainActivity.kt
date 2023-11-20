@@ -1,5 +1,6 @@
 package hk.hku.cs.toiletinator1000
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
@@ -85,18 +86,67 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
         mMap.uiSettings.isMyLocationButtonEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
 
-        // Add markers and move the camera
-        val coordinates: List<LatLng> = listOf(
-            LatLng(22.28319531565826, 114.13741225026928),
-            LatLng(22.2832596416007, 114.13805203112183),
-            LatLng(22.283202080716922, 114.13785903798951),
+        // Set custom info window
+        val infoWindow = CustomInfoWindow(this)
+        mMap.setInfoWindowAdapter(infoWindow)
+        mMap.setOnInfoWindowClickListener { marker ->
+            Toast.makeText(
+                this, marker.title,
+                Toast.LENGTH_SHORT
+            ).show()
+            // Launch ToiletDetailsActivity
+            val intent = Intent(this, ToiletDetailsActivity::class.java)
+            intent.putExtra("toiletLocation", marker.title)
+            intent.putExtra("toiletStars", marker.snippet)
+            startActivity(intent)
+            marker.hideInfoWindow()
+        }
+
+        // Dummy toilets
+        val toilets: List<Toilet> = listOf(
+            Toilet(
+                "1",
+                "1/F",
+                "Knowles Building",
+                LatLng(22.28319531565826, 114.13741225026928)
+            ),
+            Toilet("2", "8/F", "KK Leung", LatLng(22.2832596416007, 114.13805203112183)),
+            Toilet(
+                "3",
+                "1/F",
+                "Main Library",
+                LatLng(22.283202080716922, 114.13785903798951)
+            ),
         )
-        var count = 0
-        coordinates.forEach(fun(marker) {
+
+        // Dummy reviews
+        val reviews: List<Review> = listOf(
+            Review("1", 4.5, "Very clean!"),
+            Review("1", 4.0, "Clean"),
+            Review("1", 2.0, "Pretty bad"),
+            Review("2", 3.5, "Not bad"),
+            Review("3", 2.5, "Not good"),
+        )
+
+        toilets.forEach(fun(toilet: Toilet) {
+            // Aggregate stars
+            var stars = 0.0
+            var count = 0
+            reviews.forEach(fun(review: Review) {
+                if (review.getToiletId() == toilet.getId()) {
+                    stars += review.getStars()
+                    count += 1
+                }
+            })
+            if (count > 0) {
+                stars /= count
+            }
+
             mMap.addMarker(
-                MarkerOptions().position(marker).title("Toilet $count").snippet("Very nice toilet")
+                MarkerOptions().position(toilet.getLatLng())
+                    .title("${toilet.getFloor()} ${toilet.getBuilding()}")
+                    .snippet("Stars: $stars / 5")
             )
-            count++
         })
 
         mMap.moveCamera(
@@ -114,8 +164,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
      * Called when user clicks the My Location button. The camera animates to the user's current location.
      */
     override fun onMyLocationButtonClick(): Boolean {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
-            .show()
+        // Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
+        //ll    .show()
         // Return false so that we don't consume the event and the default behavior still occurs
         return false
     }
