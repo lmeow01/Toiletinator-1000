@@ -2,6 +2,7 @@ package hk.hku.cs.toiletinator1000
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -72,4 +73,5 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(22.28319531565826, 114.13741225026928)))
         mMap.setMinZoomPreference(16f)
     }
+
 }
