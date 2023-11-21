@@ -8,8 +8,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 
 
 class LoginActivity : AppCompatActivity() {
@@ -29,7 +27,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login)
 
-        auth = Firebase.auth
+        auth = FirebaseAuth.getInstance()
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -51,15 +49,12 @@ class LoginActivity : AppCompatActivity() {
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
-                        val user = auth.currentUser
-
                         val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
                         finish()
                     } else {
                         // If sign in fails, display a message to the user.
-                        Toast.makeText(this, "Login failed. Invalid credentials.", Toast.LENGTH_SHORT)
-                            .show()
+                        Toast.makeText(this, "Login failed. Invalid credentials.", Toast.LENGTH_SHORT).show()
                     }
                 }
         }
