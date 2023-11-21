@@ -12,7 +12,6 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -201,11 +200,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
             return
         }
 
-        if (isPermissionGranted(
+        if (PermissionsUtils.isPermissionGranted(
                 permissions,
                 grantResults,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) || isPermissionGranted(
+            ) || PermissionsUtils.isPermissionGranted(
                 permissions,
                 grantResults,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION
@@ -259,7 +258,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
         // Note: Skipped permissions rationale
 
         // 2. Otherwise, request permission
-        ActivityCompat.requestPermissions(
+        PermissionsUtils.requestPermissions(
             this,
             arrayOf(
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -267,22 +266,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
             ),
             LOCATION_PERMISSION_REQUEST_CODE
         )
-    }
-
-    /**
-     * Function to check whether the given permissions are granted.
-     */
-    private fun isPermissionGranted(
-        permissions: Array<out String>,
-        grantResults: IntArray,
-        permission: String
-    ): Boolean {
-        for (i in permissions.indices) {
-            if (permission == permissions[i]) {
-                return grantResults[i] == PackageManager.PERMISSION_GRANTED
-            }
-        }
-        return false
     }
 
     /**
