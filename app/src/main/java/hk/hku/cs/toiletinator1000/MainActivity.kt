@@ -23,8 +23,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObjects
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButtonClickListener,
@@ -36,14 +36,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
 
-    lateinit var auth: FirebaseAuth
+    private lateinit var auth: FirebaseAuth
     val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        auth = Firebase.auth
+        auth = FirebaseAuth.getInstance()
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -108,62 +108,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, OnMyLocationButton
             marker.hideInfoWindow()
         }
 
-        // Dummy toilets
-        val toilets: List<Toilet> = listOf(
-            Toilet(
-                "1",
-                "1/F",
-                "Knowles Building",
-                LatLng(22.28319531565826, 114.13741225026928)
-            ),
-            Toilet("2", "8/F", "KK Leung", LatLng(22.2832596416007, 114.13805203112183)),
-            Toilet(
-                "3",
-                "1/F",
-                "Main Library",
-                LatLng(22.283202080716922, 114.13785903798951)
-            ),
-        )
+        // Retrive toilets from database
+        db.collection("Toilet")
+            .get()
+            .addOnSuccessListener { documents ->
+                var toilets: List<Toilet> = documents.toObjects<Toilet>();
 
-        // Dummy reviews
-        val reviews: List<Review> = listOf(
-            Review("1", 4.5, "Very clean!"),
-            Review("1", 4.0, "Clean"),
-            Review("1", 2.0, "Pretty bad"),
-            Review("2", 3.5, "Not bad"),
-            Review("3", 2.5, "Not good"),
-        )
+                toilets.forEach(fun(toilet: Toilet) {
 
-        toilets.forEach(fun(toilet: Toilet) {
-            // Aggregate stars
-            var stars = 0.0
-            var count = 0
-            reviews.forEach(fun(review: Review) {
-                if (review.getToiletId() == toilet.getId()) {
-                    stars += review.getStars()
-                    count += 1
-                }
-            })
-            if (count > 0) {
-                stars /= count
+                    Log.d("AHAHAHAHAHHAHAHAHAHA", toilet.building)
+                    mMap.addMarker(
+                        MarkerOptions().position(LatLng(toilet.latitude, toilet.longitude))
+                            .title("${toilet.floor} ${toilet.building}")
+                            .snippet("Stars: ${toilet.stars}/ 5")
+                    )
+                })
+
+                mMap.moveCamera(
+                    CameraUpdateFactory.newLatLng(
+                        LatLng(
+                            22.28319531565826,
+                            114.13741225026928
+                        )
+                    )
+                )
+                mMap.setMinZoomPreference(16f)
+            }
+            .addOnFailureListener { exception ->
+                Log.d("Failure", "Error getting documents: ", exception)
             }
 
-            mMap.addMarker(
-                MarkerOptions().position(toilet.getLatLng())
-                    .title("${toilet.getFloor()} ${toilet.getBuilding()}")
-                    .snippet("Stars: $stars / 5")
-            )
-        })
-
-        mMap.moveCamera(
-            CameraUpdateFactory.newLatLng(
-                LatLng(
-                    22.28319531565826,
-                    114.13741225026928
-                )
-            )
-        )
-        mMap.setMinZoomPreference(16f)
     }
 
     /**
