@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/home_page"
+        android:enabled="true"
+        android:icon="@drawable/wc_24px"
+        android:title="Toilets"
+        />
+    <item
+        android:id="@+id/favourites_page"
+        android:enabled="true"
+        android:icon="@drawable/favorite_24px"
+        android:title="Favourites"
+        />
+</menu>
