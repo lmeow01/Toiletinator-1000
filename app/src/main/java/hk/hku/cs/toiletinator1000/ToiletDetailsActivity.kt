@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
@@ -17,6 +18,8 @@ import com.google.firebase.storage.storage
 const val REQUEST_CODE = 42
 
 class ToiletDetailsActivity : AppCompatActivity() {
+
+    private var isAddReviewVisible = false
 
     private val storage = Firebase.storage
 
@@ -49,5 +52,24 @@ class ToiletDetailsActivity : AppCompatActivity() {
         val toiletStars = intent.getStringExtra("toiletStars")
         val toiletDetailsStars: TextView = findViewById(R.id.toilet_details_stars)
         toiletDetailsStars.text = toiletStars
+
+        val addReviewButton: Button = findViewById(R.id.button_add_review)
+        addReviewButton.setOnClickListener {
+            toggleAddReviewFragment()
+        }
+    }
+
+    private fun toggleAddReviewFragment() {
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        val fragment = ReviewsFragment()
+
+        if (isAddReviewVisible) {
+            fragmentTransaction.remove(fragment)
+        } else {
+            fragmentTransaction.replace(R.id.reviews_container, fragment)
+        }
+
+        fragmentTransaction.commit()
+        isAddReviewVisible = !isAddReviewVisible
     }
 }
