@@ -10,5 +10,6 @@ data class Toilet (
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     var stars: Double = 0.0,
-    var status: String = "Available"
+    var status: String = "Available",
+    var images: ArrayList<String> = ArrayList()
 )
