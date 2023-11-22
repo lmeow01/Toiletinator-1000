@@ -2,7 +2,7 @@ package hk.hku.cs.toiletinator1000
 
 import com.google.firebase.firestore.DocumentId
 
-class Toilet (
+data class Toilet (
     @DocumentId
     val toiletId: String = "",
     val floor: String = "",

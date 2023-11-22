@@ -3,7 +3,7 @@ package hk.hku.cs.toiletinator1000
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.FieldValue
 
-class Review(
+data class Review(
     @DocumentId
     val reviewId: String = "",
     val userId: String = "",
