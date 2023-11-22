@@ -1,71 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/linearLayout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="350dp"
-    android:gravity="bottom"
-    android:orientation="vertical"
-    android:paddingLeft="8dp"
-    android:paddingEnd="8dp"
-    android:paddingBottom="20dp"
-    app:layout_constraintBottom_toBottomOf="parent">
+    android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/reviewTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingBottom="10dp"
-            android:text="Review"
-            android:textSize="24sp"
-            tools:layout_conversion_absoluteHeight="1dp"
-            tools:layout_conversion_absoluteWidth="1dp"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="15dp" />
-
-        <RatingBar
-            android:id="@+id/ratingBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:numStars="5"
-            android:progressBackgroundTint="#C5C5C5"
-            android:progressTint="#FFB300"
-            android:stepSize="1"
-            tools:layout_conversion_absoluteHeight="1dp"
-            tools:layout_conversion_absoluteWidth="1dp"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="0dp" />
-
-        <EditText
-            android:id="@+id/reviewDesc"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:gravity="start|top"
-            android:hint="Enter your review"
-            android:inputType="textMultiLine"
-            android:textSize="20sp"
-            tools:layout_conversion_absoluteHeight="1dp"
-            tools:layout_conversion_absoluteWidth="1dp"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="0dp" />
+            android:layout_marginTop="350dp"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:paddingLeft="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="20dp"
+            android:background="@android:color/white">
 
-        <Button
-            android:id="@+id/submitReview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:backgroundTint="@color/blue"
-            android:text="Submit Review"
-            android:textColor="@color/black"
-            android:textSize="20dp"
-            tools:layout_conversion_absoluteHeight="1dp"
-            tools:layout_conversion_absoluteWidth="1dp"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="5dp" />
-</LinearLayout>
+                <TextView
+                    android:id="@+id/reviewTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="10dp"
+                    android:text="Review"
+                    android:textSize="24sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <RatingBar
+                    android:id="@+id/ratingBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:progressBackgroundTint="#C5C5C5"
+                    android:progressTint="#FFB300"
+                    android:stepSize="1"
+                    app:layout_constraintEnd_toEndOf="@id/submitReview"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/reviewTitle" />
+
+                <EditText
+                    android:id="@+id/reviewDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:gravity="start|top"
+                    android:hint="Enter your review"
+                    android:inputType="textMultiLine"
+                    android:nestedScrollingEnabled="true"
+                    android:textSize="20sp"
+                    app:layout_constraintBottom_toTopOf="@id/submitReview"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ratingBar"
+                    app:layout_constraintVertical_bias="0.593" />
+
+                <Button
+                    android:id="@+id/submitReview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="200dp"
+                    android:backgroundTint="@color/blue"
+                    android:text="Submit Review"
+                    android:textColor="@color/black"
+                    android:textSize="20dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>
 
 
 
