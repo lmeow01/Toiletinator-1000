@@ -23,13 +23,11 @@
             android:id="@+id/toilet_details_image"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_alignParentLeft="true"
             android:src="@drawable/ic_launcher_background" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:orientation="vertical">
 
             <TextView
@@ -56,6 +54,14 @@
                 android:text="Status" />
 
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/button_report"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:layout_margin="4dp"
+            android:src="@drawable/report_24px" />
 
     </LinearLayout>
 
