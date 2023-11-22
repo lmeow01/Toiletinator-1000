@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 class LoginActivity : AppCompatActivity() {
 
     private fun isValidCredentials(email: String, password: String): Boolean {
+        //android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
         return email.isNotEmpty() && password.isNotEmpty()
     }
 
@@ -40,7 +41,7 @@ class LoginActivity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
             } else {
-                Toast.makeText(this, "Login failed. Invalid credentials.", Toast.LENGTH_SHORT)
+                Toast.makeText(this@LoginActivity, "Login failed. Invalid credentials.", Toast.LENGTH_SHORT)
                     .show()
             }
         }

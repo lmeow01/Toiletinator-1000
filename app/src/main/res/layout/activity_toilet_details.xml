@@ -2,9 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+    android:id="@+id/activity_toilet_details"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".ToiletDetailsActivity">
 
     <include
@@ -15,23 +16,27 @@
         android:id="@+id/toilet_details_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
         android:layout_margin="4dp"
-        android:text="Toilet Location"/>
+        android:paddingLeft="8dp"
+        android:paddingEnd="8dp"
+        android:text="Toilet Location"
+        android:textSize="24sp" />
 
     <TextView
         android:id="@+id/toilet_details_stars"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
         android:layout_margin="4dp"
-        android:text="Toilet Stars"/>
+        android:paddingLeft="8dp"
+        android:paddingEnd="8dp"
+        android:text="Toilet Stars"
+        android:textSize="24sp" />
 
     <LinearLayout
         android:id="@+id/reviews_container"
         android:layout_width="match_parent"
-        android:layout_margin="4dp"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_margin="4dp">
 
         <fragment
             android:id="@+id/reviews_fragment"
@@ -40,6 +45,5 @@
             android:layout_height="match_parent"
             tools:context=".ReviewsFragment" />
     </LinearLayout>
-
 
 </LinearLayout>

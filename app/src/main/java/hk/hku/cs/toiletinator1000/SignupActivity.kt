@@ -19,7 +19,7 @@ class SignupActivity : AppCompatActivity() {
     }
 
     private fun performSignUp(firstName: String, lastName: String, email: String, password: String) {
-        Toast.makeText(this, "Sign-up successful for $email", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@SignupActivity, "Sign-up successful for $email", Toast.LENGTH_SHORT).show()
 
         // Redirect to the main screen after successful sign-up
         val intent = Intent(this, MainActivity::class.java)
@@ -55,7 +55,7 @@ class SignupActivity : AppCompatActivity() {
                 // Call function to perform sign-up
                 performSignUp(firstName, lastName, email, password)
             } else {
-                Toast.makeText(this, "Invalid sign-up details", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@SignupActivity, "Invalid sign-up details", Toast.LENGTH_SHORT).show()
             }
         }
 
