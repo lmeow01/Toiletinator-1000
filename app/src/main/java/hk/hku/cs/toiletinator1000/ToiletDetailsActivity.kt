@@ -1,13 +1,42 @@
 package hk.hku.cs.toiletinator1000
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.util.Log
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
+
+const val REQUEST_CODE = 42
 
 class ToiletDetailsActivity : AppCompatActivity() {
 
     private var isAddReviewVisible = false
+
+    private val storage = Firebase.storage
+
+    // An activity result launcher for selecting images from the gallery
+    private val uploadImageFromGallery =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+            if (uri != null) {
+                FileUtils.uploadFile(uri, "images", "lmao").addOnSuccessListener {
+                    Toast.makeText(this, "Upload successful", Toast.LENGTH_SHORT).show()
+                    Log.d("ToiletDetailsActivity", "Upload successful")
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Upload failed", Toast.LENGTH_SHORT).show()
+                    Log.e("ToiletDetailsActivity", "Upload failed")
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_toilet_details)
