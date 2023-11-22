@@ -45,6 +45,11 @@ class LoginActivity : AppCompatActivity() {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
 
+            if (!isValidCredentials(email, password)) {
+                Toast.makeText(this, "Please check your credentials", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
