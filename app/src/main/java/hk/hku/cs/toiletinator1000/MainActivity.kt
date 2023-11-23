@@ -14,6 +14,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import android.widget.SearchView;
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +22,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
 
     private lateinit var auth: FirebaseAuth
+
+//    private lateinit var mapSearchView: SearchView
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +42,8 @@ class MainActivity : AppCompatActivity() {
         // Action bar stuff
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+
 
         // Navigation drawer stuff
         drawerLayout = findViewById(R.id.drawer_layout)
@@ -58,6 +65,8 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+
+
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottomNavigationView.selectedItemId = R.id.home_page
 
@@ -77,24 +86,27 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().replace(R.id.fragment_container, FavouritesFragment()).commit()
             bottomNavigationView.selectedItemId = R.id.favourites_page
         }
+
     }
 
     /**
-     * Called when the menu is created.
+     * Open Search Bar
      */
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflator: MenuInflater = menuInflater
-        inflator.inflate(R.menu.filter, menu)
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.filter, menu)
+        val mapSearchView = findViewById<SearchView>(R.id.mapSearch)
+
         return true
     }
+
 
     /**
      * Called when an item in the menu is selected.
      */
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        when (item.itemId) {
+//            R.id.mapSearchButton ->
+//        }
+//            return super.onOptionsItemSelected(item)
+//    }
 }
