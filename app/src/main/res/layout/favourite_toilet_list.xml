@@ -8,23 +8,37 @@
     android:orientation="horizontal">
 
     <ImageView
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:id="@+id/fav_toilet_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:padding="16dp"
         android:src="@drawable/ic_launcher_foreground" />
 
-    <TextView
-        android:id="@+id/fav_toilet_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Location" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-    <TextView
-        android:id="@+id/fav_toilet_stars"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginStart="8dp"
-        android:text="Stars" />
+        <TextView
+            android:id="@+id/fav_toilet_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location" />
+
+        <TextView
+            android:id="@+id/fav_toilet_stars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stars" />
+
+        <TextView
+            android:id="@+id/fav_toilet_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status" />
+    </LinearLayout>
+
 
 </LinearLayout>

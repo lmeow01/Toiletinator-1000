@@ -1,21 +1,20 @@
 package hk.hku.cs.toiletinator1000
 
-import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.maps.model.LatLng
-import com.google.apphosting.datastore.testing.DatastoreTestTrace.FirestoreV1Action.ListCollectionIds
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 
 /**
  * A simple [Fragment] subclass.
@@ -52,6 +51,10 @@ class FavouritesFragment : Fragment() {
             if (user != null) {
                 val favList = documentSnapshot.toObject(User::class.java)?.Fav ?: emptyList()
 
+                if (favList.isEmpty()) {
+                    view.findViewById<TextView>(R.id.no_favourites_text).visibility = View.VISIBLE
+                }
+
                 // Fetch details of each toilet from the Fav list
                 for (toiletId in favList) {
                     Log.d("ToiletId in favList", "Wishlist: $toiletId")
@@ -66,7 +69,7 @@ class FavouritesFragment : Fragment() {
                                 Log.d("FavouritesFragment", "Toilet added: $it")
                             }
                         } else {
-                        Log.e("FavouritesFragment", "Toilet document does not exist")
+                            Log.e("FavouritesFragment", "Toilet document does not exist")
                         }
                     }
                 }
@@ -80,7 +83,6 @@ class FavouritesFragment : Fragment() {
     }
 
 
-
     companion object {
         /**
          * Use this factory method to create a new instance of
@@ -91,7 +93,7 @@ class FavouritesFragment : Fragment() {
         @JvmStatic
         fun newInstance() =
             FavouritesFragment().apply {
-                arguments = Bundle().apply{
+                arguments = Bundle().apply {
                 }
             }
     }
@@ -100,20 +102,19 @@ class FavouritesFragment : Fragment() {
 class FavouriteToiletsAdapter(private val favourites: ArrayList<Toilet>) :
     RecyclerView.Adapter<FavouriteToiletsAdapter.ViewHolder>() {
 
+    private val storage = Firebase.storage
+
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val location: TextView
         val stars: TextView
+        val status: TextView
+        val image: ImageView
 
         init {
             location = view.findViewById(R.id.fav_toilet_location)
             stars = view.findViewById(R.id.fav_toilet_stars)
-            view.setOnClickListener {
-                val intent = Intent(view.context, ToiletDetailsActivity::class.java)
-                intent.putExtra("toiletLocation", location.text)
-                intent.putExtra("toiletStars", stars.text)
-                intent.putExtra("toiletId", "1")
-                view.context.startActivity(intent)
-            }
+            status = view.findViewById(R.id.fav_toilet_status)
+            image = view.findViewById(R.id.fav_toilet_image)
         }
     }
 
@@ -126,12 +127,28 @@ class FavouriteToiletsAdapter(private val favourites: ArrayList<Toilet>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val toilet = favourites[position]
         holder.location.text = toilet.floor + " " + toilet.building
-        holder.stars.text = toilet.stars.toString()
+        holder.stars.text = toilet.stars.toString() + " / 5"
+        holder.status.text = toilet.status
+
+        // Download image
+        if (toilet.images.size > 0) {
+            val imageRef = storage.reference.child(toilet.images[0])
+            val ONE_MEGABYTE: Long = 1024 * 1024
+            imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener { bytes ->
+                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                holder.image.setImageBitmap(bitmap)
+            }.addOnFailureListener {
+                Log.e("ToiletDetailsActivity", "Failed to get image")
+            }
+        }
 
         //display the page when user clicks in the toilet from wishlist
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, ToiletDetailsActivity::class.java)
-            intent.putExtra("toiletId", toilet.toiletId) // Pass the toiletId to ToiletDetailsActivity
+            intent.putExtra(
+                "toiletId",
+                toilet.toiletId
+            ) // Pass the toiletId to ToiletDetailsActivity
             holder.itemView.context.startActivity(intent)
         }
     }
