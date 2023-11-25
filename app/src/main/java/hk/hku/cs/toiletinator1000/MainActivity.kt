@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
@@ -14,18 +13,13 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
-import android.widget.SearchView;
+
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
-
     private lateinit var auth: FirebaseAuth
-
-//    private lateinit var mapSearchView: SearchView
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,8 +36,6 @@ class MainActivity : AppCompatActivity() {
         // Action bar stuff
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-
 
         // Navigation drawer stuff
         drawerLayout = findViewById(R.id.drawer_layout)
@@ -65,25 +57,26 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-
-
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottomNavigationView.selectedItemId = R.id.home_page
 
         // Load the home fragment by default
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, HomeFragment()).commit()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment()).commit()
         }
 
         val homePage = findViewById<View>(R.id.home_page)
-        homePage.setOnClickListener{
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, HomeFragment()).commit()
+        homePage.setOnClickListener {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment()).commit()
             bottomNavigationView.selectedItemId = R.id.home_page
         }
 
         val favPage = findViewById<View>(R.id.favourites_page)
-        favPage.setOnClickListener{
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, FavouritesFragment()).commit()
+        favPage.setOnClickListener {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, FavouritesFragment()).commit()
             bottomNavigationView.selectedItemId = R.id.favourites_page
         }
 
@@ -93,9 +86,7 @@ class MainActivity : AppCompatActivity() {
      * Open Search Bar
      */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.filter, menu)
-        val mapSearchView = findViewById<SearchView>(R.id.mapSearch)
-
+        menuInflater.inflate(R.menu.search, menu)
         return true
     }
 
@@ -103,10 +94,10 @@ class MainActivity : AppCompatActivity() {
     /**
      * Called when an item in the menu is selected.
      */
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        when (item.itemId) {
-//            R.id.mapSearchButton ->
-//        }
-//            return super.onOptionsItemSelected(item)
-//    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
 }
