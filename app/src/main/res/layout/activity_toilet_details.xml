@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="8dp"
                 android:text="Toilet Location"
-                android:textSize="24sp" />
+                android:textSize="22sp" />
 
             <TextView
                 android:id="@+id/toilet_details_stars"
@@ -62,6 +62,21 @@
             android:background="@android:color/transparent"
             android:layout_margin="4dp"
             android:src="@drawable/report_24px" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/favourite_checkBox"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginTop="25dp"
+                android:button="@drawable/favorite_wishlist_item"
+                android:foregroundTint="@color/red"
+                android:paddingEnd="15dp" />
+        </LinearLayout>
 
     </LinearLayout>
 

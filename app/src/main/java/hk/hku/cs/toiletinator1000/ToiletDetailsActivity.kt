@@ -1,11 +1,14 @@
 package hk.hku.cs.toiletinator1000
 
+import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -13,8 +16,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.widget.CompoundButtonCompat
+import com.google.common.reflect.TypeToken
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.storage
 
 const val REQUEST_CODE = 42
@@ -111,7 +120,64 @@ class ToiletDetailsActivity : AppCompatActivity() {
                 }
                 .show()
         }
+
+        //Favourite Checkbox
+        val favouriteCheckbox: CheckBox = findViewById(R.id.favourite_checkBox)
+
+        //check current user UID
+        val currentUserUID = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+        // Get the current user's document reference
+        val userDocumentRef = db.collection("User").document(currentUserUID)
+
+        //Retrieve the current user's data
+        userDocumentRef.get().addOnSuccessListener{ documentSnapshot ->
+            val user = documentSnapshot.toObject(User::class.java)
+            if (user != null) {
+                val favList = user.Fav.toMutableList() // Convert to mutable list
+                val isToiletIdFav = favList.contains(toiletId)
+
+                favouriteCheckbox.isChecked = isToiletIdFav
+
+                favouriteCheckbox.setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        CompoundButtonCompat.setButtonTintList(favouriteCheckbox, ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.red)))
+                        if (!favList.contains(toiletId)) {
+                            favList.add(toiletId)
+                            // Update Fav list in Firestore
+                            userDocumentRef.update("Fav", favList)
+                                .addOnSuccessListener {
+                                    Log.d("Firestore", "FavList updated successfully")
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("Firestore", "Error updating FavList: $e")
+                                }
+                        }
+                        //checkbox is unchecked
+                    } else {
+                        CompoundButtonCompat.setButtonTintList(favouriteCheckbox, ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.grey)))
+                        favList.remove(toiletId)
+                        // Update Fav list in Firestore
+                        userDocumentRef.update("Fav", favList)
+                            .addOnSuccessListener {
+                                Log.d("Firestore", "FavList updated successfully")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("Firestore", "Error updating FavList: $e")
+                            }
+                    }
+                }
+            } else {
+                // User document doesn't exist (this should be handled accordingly)
+                Log.d("Firestore", "User document doesn't exist for ID: $currentUserUID")
+            }
+        }.addOnFailureListener { e ->
+            Log.e("Firestore", "Error fetching user document: $e")
+        }
     }
+
 
     private fun toggleAddReviewFragment() {
         val fragmentTransaction = supportFragmentManager.beginTransaction()
@@ -126,4 +192,5 @@ class ToiletDetailsActivity : AppCompatActivity() {
         fragmentTransaction.commit()
         isAddReviewVisible = !isAddReviewVisible
     }
+
 }
