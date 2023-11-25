@@ -63,14 +63,21 @@
             android:layout_margin="4dp"
             android:src="@drawable/report_24px" />
 
-        <CheckBox
-            android:id="@+id/favourite_checkBox"
-            android:layout_width="wrap_content"
-            android:layout_height="60dp"
-            android:layout_marginTop="25dp"
-            android:button="@drawable/favorite_wishlist_item"
-            android:paddingEnd="15dp"
-            android:buttonTint="@color/red"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/favourite_checkBox"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginTop="25dp"
+                android:button="@drawable/favorite_wishlist_item"
+                android:foregroundTint="@color/red"
+                android:paddingEnd="15dp" />
+        </LinearLayout>
+
 
     </LinearLayout>
 
