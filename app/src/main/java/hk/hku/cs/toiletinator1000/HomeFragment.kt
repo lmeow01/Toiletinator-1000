@@ -1,14 +1,18 @@
 package hk.hku.cs.toiletinator1000
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -49,6 +53,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var searchAdapter: SearchAdapter
+
+    private val SPEECH_REQUEST_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -170,6 +176,40 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
             recyclerView.visibility = View.GONE
         }
 
+    }
+
+    //Voice Search Functionality
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val voiceSearchButton = view.findViewById<ImageButton>(R.id.voiceSearchButton)
+        voiceSearchButton.setOnClickListener {
+            // Implement voice search logic here
+            startVoiceRecognition()
+        }
+    }
+
+    private fun startVoiceRecognition() {
+        // Start listening for voice input and handle the recognized text for search
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now")
+        startActivityForResult(intent, SPEECH_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SPEECH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!matches.isNullOrEmpty()) {
+                val query = matches[0].toString()
+                filterMarkers(query)
+
+                // Set the recognized query text in the SearchView
+                val searchView = view?.findViewById<SearchView>(R.id.searchView)
+                searchView?.setQuery(query, true)
+            }
+        }
     }
 
     /**
