@@ -145,7 +145,7 @@ class FavouriteToiletsAdapter(private val favourites: ArrayList<Toilet>) :
         holder.status.text = toilet.status
 
         // Download image
-        if (toilet.images.size > 0) {
+        if (toilet.images.size > 0 && toilet.images[0] != "") {
             val imageRef = storage.reference.child(toilet.images[0])
             val ONE_MEGABYTE: Long = 1024 * 1024
             imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener { bytes ->
