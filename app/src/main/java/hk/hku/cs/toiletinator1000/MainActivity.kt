@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
@@ -15,11 +14,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
-
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,30 +62,34 @@ class MainActivity : AppCompatActivity() {
 
         // Load the home fragment by default
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, HomeFragment()).commit()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment()).commit()
         }
 
         val homePage = findViewById<View>(R.id.home_page)
-        homePage.setOnClickListener{
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, HomeFragment()).commit()
+        homePage.setOnClickListener {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment()).commit()
             bottomNavigationView.selectedItemId = R.id.home_page
         }
 
         val favPage = findViewById<View>(R.id.favourites_page)
-        favPage.setOnClickListener{
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, FavouritesFragment()).commit()
+        favPage.setOnClickListener {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, FavouritesFragment()).commit()
             bottomNavigationView.selectedItemId = R.id.favourites_page
         }
+
     }
 
     /**
-     * Called when the menu is created.
+     * Open Search Bar
      */
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflator: MenuInflater = menuInflater
-        inflator.inflate(R.menu.filter, menu)
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.search, menu)
         return true
     }
+
 
     /**
      * Called when an item in the menu is selected.
