@@ -5,14 +5,5 @@
         android:id="@+id/filter"
         android:icon="@drawable/filter_alt_24px"
         android:title="Filter"
-        app:showAsAction="ifRoom|withText">
-        <menu>
-            <item
-                android:id="@+id/test"
-                android:title="Test" />
-            <item
-                android:id="@+id/test2"
-                android:title="Test2" />
-        </menu>
-    </item>
+        app:showAsAction="always"></item>
 </menu>
