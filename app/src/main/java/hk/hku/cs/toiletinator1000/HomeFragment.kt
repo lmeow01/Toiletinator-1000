@@ -78,15 +78,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
         val infoWindow = CustomInfoWindow(parentActivity)
         map.setInfoWindowAdapter(infoWindow)
         map.setOnInfoWindowClickListener { marker ->
-            Toast.makeText(
-                parentActivity, marker.title,
-                Toast.LENGTH_SHORT
-            ).show()
             // Launch ToiletDetailsActivity
             val intent = Intent(parentActivity, ToiletDetailsActivity::class.java)
-            intent.putExtra("toiletLocation", marker.title)
-            intent.putExtra("toiletStars", marker.snippet)
-            intent.putExtra("toiletId", marker.id)
+            intent.putExtra("toiletId", marker.tag.toString())
             startActivity(intent)
             marker.hideInfoWindow()
         }
@@ -101,11 +95,16 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
 
                 toilets.forEach(fun(toilet: Toilet) {
                     Log.d("HomeFragment", "Toilet: ${toilet.toiletId} ${toilet.floor} ${toilet.building} ${toilet.latitude} ${toilet.longitude} ${toilet.stars} ${toilet.status}")
-                    map.addMarker(
+
+                    val marker = map.addMarker(
                         MarkerOptions().position(LatLng(toilet.latitude, toilet.longitude))
                             .title("${toilet.floor} ${toilet.building}")
                             .snippet("Stars: ${toilet.stars}/ 5")
                     )
+
+                    if (marker != null) {
+                        marker.tag = toilet.toiletId
+                    }
                 })
 
                 map.moveCamera(
