@@ -1,6 +1,5 @@
 package hk.hku.cs.toiletinator1000
 
-import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -15,15 +14,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.CompoundButtonCompat
-import com.google.common.reflect.TypeToken
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.storage
 
 const val REQUEST_CODE = 42
@@ -131,18 +126,29 @@ class ToiletDetailsActivity : AppCompatActivity() {
         val userDocumentRef = db.collection("User").document(currentUserUID)
 
         //Retrieve the current user's data
-        userDocumentRef.get().addOnSuccessListener{ documentSnapshot ->
+        userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
             val user = documentSnapshot.toObject(User::class.java)
             if (user != null) {
                 val favList = user.Fav.toMutableList() // Convert to mutable list
                 val isToiletIdFav = favList.contains(toiletId)
 
-                favouriteCheckbox.isChecked = isToiletIdFav
+                if (isToiletIdFav) {
+                    favouriteCheckbox.isChecked = isToiletIdFav
+                    CompoundButtonCompat.setButtonTintList(
+                        favouriteCheckbox, ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.red)
+                        )
+                    )
+                }
+
 
                 favouriteCheckbox.setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        CompoundButtonCompat.setButtonTintList(favouriteCheckbox, ColorStateList.valueOf(
-                            ContextCompat.getColor(this, R.color.red)))
+                        CompoundButtonCompat.setButtonTintList(
+                            favouriteCheckbox, ColorStateList.valueOf(
+                                ContextCompat.getColor(this, R.color.red)
+                            )
+                        )
                         if (!favList.contains(toiletId)) {
                             favList.add(toiletId)
                             // Update Fav list in Firestore
@@ -156,8 +162,11 @@ class ToiletDetailsActivity : AppCompatActivity() {
                         }
                         //checkbox is unchecked
                     } else {
-                        CompoundButtonCompat.setButtonTintList(favouriteCheckbox, ColorStateList.valueOf(
-                            ContextCompat.getColor(this, R.color.grey)))
+                        CompoundButtonCompat.setButtonTintList(
+                            favouriteCheckbox, ColorStateList.valueOf(
+                                ContextCompat.getColor(this, R.color.grey)
+                            )
+                        )
                         favList.remove(toiletId)
                         // Update Fav list in Firestore
                         userDocumentRef.update("Fav", favList)
