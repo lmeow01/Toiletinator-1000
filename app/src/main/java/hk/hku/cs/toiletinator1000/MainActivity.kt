@@ -92,9 +92,13 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
             val building =
                 popupView.findViewById<Spinner>(R.id.building_spinner).selectedItem.toString()
 
-            val homeFragment =
-                supportFragmentManager.findFragmentById(R.id.fragment_container) as HomeFragment
-            homeFragment.filterToilets(minStars, maxStars, status, building)
+            val fragment =
+                supportFragmentManager.findFragmentById(R.id.fragment_container)
+            if (fragment is HomeFragment) {
+                fragment.filterToilets(minStars, maxStars, status, building)
+            } else if (fragment is FavouritesFragment) {
+                fragment.filterToilets(minStars, maxStars, status, building)
+            }
         }
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)

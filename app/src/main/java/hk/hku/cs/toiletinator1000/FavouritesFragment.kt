@@ -23,6 +23,7 @@ import com.google.firebase.storage.storage
  */
 class FavouritesFragment : Fragment() {
     private var favourites = ArrayList<Toilet>()
+    private var favouritesCurr = ArrayList<Toilet>()
     private lateinit var favouriteToiletsAdapter: FavouriteToiletsAdapter
     private val db = Firebase.firestore
 
@@ -31,13 +32,12 @@ class FavouritesFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_favourites, container, false)
 
         val recyclerView: RecyclerView = view.findViewById(R.id.favourites_recycler_view)
-        favouriteToiletsAdapter = FavouriteToiletsAdapter(favourites)
+        favouriteToiletsAdapter = FavouriteToiletsAdapter(favouritesCurr)
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
         recyclerView.adapter = favouriteToiletsAdapter
 
@@ -65,6 +65,7 @@ class FavouritesFragment : Fragment() {
                             Log.d("Check toilet", "Toilet database: $toilet")
                             toilet?.let {
                                 favourites.add(it)
+                                favouritesCurr.add(it)
                                 favouriteToiletsAdapter.notifyDataSetChanged()
                                 Log.d("FavouritesFragment", "Toilet added: $it")
                             }
@@ -82,6 +83,21 @@ class FavouritesFragment : Fragment() {
         return view
     }
 
+    public fun filterToilets(minStars: Int, maxStars: Int, status: String, building: String) {
+        val filteredToilets = ArrayList<Toilet>()
+        for (toilet in favourites) {
+            val matchStars = toilet.stars >= minStars && toilet.stars <= maxStars
+            val matchStatus = status == "All" || toilet.status == status
+            val matchBuilding = building == "All" || toilet.building == building
+            if (matchStars && matchStatus && matchBuilding) {
+                filteredToilets.add(toilet)
+            }
+        }
+        Log.d("FavouritesFragment", "Filtered toilets: $filteredToilets")
+        favouritesCurr.clear()
+        favouritesCurr.addAll(filteredToilets)
+        favouriteToiletsAdapter.notifyDataSetChanged()
+    }
 
     companion object {
         /**
@@ -91,11 +107,9 @@ class FavouritesFragment : Fragment() {
          * @return A new instance of fragment FavouritesFragment.
          */
         @JvmStatic
-        fun newInstance() =
-            FavouritesFragment().apply {
-                arguments = Bundle().apply {
-                }
-            }
+        fun newInstance() = FavouritesFragment().apply {
+            arguments = Bundle().apply {}
+        }
     }
 }
 
@@ -146,8 +160,7 @@ class FavouriteToiletsAdapter(private val favourites: ArrayList<Toilet>) :
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, ToiletDetailsActivity::class.java)
             intent.putExtra(
-                "toiletId",
-                toilet.toiletId
+                "toiletId", toilet.toiletId
             ) // Pass the toiletId to ToiletDetailsActivity
             holder.itemView.context.startActivity(intent)
         }
