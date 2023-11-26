@@ -73,7 +73,7 @@ class ToiletDetailsActivity : AppCompatActivity() {
 
                 // Load the first image of the toilet
                 val toiletDetailsImage: ImageView = findViewById(R.id.toilet_details_image)
-                if (toilet.images.size > 0) {
+                if (toilet.images.size > 0 && toilet.images[0] != "") {
                     val imageRef = storage.reference.child(toilet.images[0])
                     val ONE_MEGABYTE: Long = 1024 * 1024
                     imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener { bytes ->
