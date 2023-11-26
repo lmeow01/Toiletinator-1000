@@ -1,5 +1,6 @@
 package hk.hku.cs.toiletinator1000
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -36,6 +37,24 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
     private lateinit var mapView: MapView
     private lateinit var parentActivity: MainActivity
     private lateinit var map: GoogleMap
+    private lateinit var onFragmentInteractionListener: OnFragmentInteractionListener
+    private lateinit var toilets: List<Toilet>
+
+    public interface OnFragmentInteractionListener {
+        public fun onFragmentInteraction(toilets: List<Toilet>)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        try {
+            onFragmentInteractionListener = context as OnFragmentInteractionListener
+        } catch (e: ClassCastException) {
+            throw ClassCastException(
+                context.toString()
+                        + " must implement OnFragmentInteractionListener"
+            )
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,11 +109,17 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
             .get()
             .addOnSuccessListener { documents ->
                 Log.d("HomeFragment", documents.toString())
-                var toilets: List<Toilet> = documents.toObjects();
+                toilets = documents.toObjects()
                 Log.d("HomeFragment", "Toilets: ${toilets.size}")
 
+                // Pass toilets to MainActivity
+                onFragmentInteractionListener.onFragmentInteraction(toilets)
+
                 toilets.forEach(fun(toilet: Toilet) {
-                    Log.d("HomeFragment", "Toilet: ${toilet.toiletId} ${toilet.floor} ${toilet.building} ${toilet.latitude} ${toilet.longitude} ${toilet.stars} ${toilet.status}")
+                    Log.d(
+                        "HomeFragment",
+                        "Toilet: ${toilet.toiletId} ${toilet.floor} ${toilet.building} ${toilet.latitude} ${toilet.longitude} ${toilet.stars} ${toilet.status}"
+                    )
 
                     val marker = map.addMarker(
                         MarkerOptions().position(LatLng(toilet.latitude, toilet.longitude))
@@ -240,6 +265,46 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
             ),
             LOCATION_PERMISSION_REQUEST_CODE
         )
+    }
+
+    public fun filterToilets(minStars: Int, maxStars: Int, status: String, building: String) {
+        // Clear map
+        map.clear()
+
+        // Filter toilets
+        var filteredToilets = toilets.filter { toilet ->
+            toilet.stars >= minStars && toilet.stars <= maxStars
+        }
+
+        if (status != "All") {
+            filteredToilets = filteredToilets.filter { toilet ->
+                toilet.status == status
+            }
+        }
+
+        if (building != "All") {
+            filteredToilets = filteredToilets.filter { toilet ->
+                toilet.building == building
+            }
+        }
+
+        // Add markers
+        filteredToilets.forEach(fun(toilet: Toilet) {
+            Log.d(
+                "HomeFragment",
+                "Toilet: ${toilet.toiletId} ${toilet.floor} ${toilet.building} ${toilet.latitude} ${toilet.longitude} ${toilet.stars} ${toilet.status}"
+            )
+
+            val marker = map.addMarker(
+                MarkerOptions().position(LatLng(toilet.latitude, toilet.longitude))
+                    .title("${toilet.floor} ${toilet.building}")
+                    .snippet("Stars: ${toilet.stars}/ 5")
+            )
+
+            if (marker != null) {
+                marker.tag = toilet.toiletId
+            }
+        })
     }
 
     companion object {
