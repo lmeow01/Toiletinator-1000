@@ -13,6 +13,8 @@ import android.widget.EditText
 import android.widget.RatingBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 class AddReviewFragment : Fragment() {
@@ -22,6 +24,8 @@ class AddReviewFragment : Fragment() {
 
     private lateinit var viewModel: ReviewDataViewModel
     private var submissionListener: ReviewSubmissionListener? = null
+
+    val db = Firebase.firestore
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +46,7 @@ class AddReviewFragment : Fragment() {
             Log.d("Rating", "Rating: $rating")
             Log.d("Review", "Review: $reviewDescription")
 
-            viewModel.addReview(rating, reviewDescription)
+//            viewModel.addReview(rating, reviewDescription)
 
             // Clear input fields after submission
             ratingBar.rating = 0f

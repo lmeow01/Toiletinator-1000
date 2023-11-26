@@ -13,10 +13,10 @@ import android.widget.FrameLayout
 import android.widget.PopupWindow
 import android.widget.Spinner
 import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
@@ -94,11 +94,11 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
 
             val fragment =
                 supportFragmentManager.findFragmentById(R.id.fragment_container)
-            if (fragment is HomeFragment) {
-                fragment.filterToilets(minStars, maxStars, status, building)
-            } else if (fragment is FavouritesFragment) {
-                fragment.filterToilets(minStars, maxStars, status, building)
-            }
+//            if (fragment is HomeFragment) {
+//                fragment.filterToilets(minStars, maxStars, status, building)
+//            } else if (fragment is FavouritesFragment) {
+//                fragment.filterToilets(minStars, maxStars, status, building)
+//            }
         }
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)
@@ -159,7 +159,7 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
     /**
      * Called when the toilet data is passed from the HomeFragment.
      */
-    override fun onFragmentInteraction(toilets: List<Toilet>) {
+    fun onFragmentInteraction(toilets: List<Toilet>) {
         Log.d("MainActivity", "Toilet data received: $toilets")
         val statusSpinner: Spinner = popupView.findViewById(R.id.status_spinner)
         val buildingSpinner: Spinner = popupView.findViewById(R.id.building_spinner)

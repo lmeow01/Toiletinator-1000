@@ -10,44 +10,18 @@
 
         <!-- TODO: Update blank fragment layout -->
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="735dp"
+            android:layout_width="234dp"
+            android:layout_height="46dp"
             android:text="Reviews"
             android:textSize="24sp" />
 
-        <ScrollView
+        <TextView
+            android:id="@+id/no_reviews_text"
+            android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/displayRating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/displayReviewDesc"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/displayRating"
-                    android:textSize="24sp" />
-            </LinearLayout>
-        </ScrollView>
-
-        <FrameLayout
-            android:id="@+id/addReviewContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:visibility="gone" />
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="This toilet has no reviews yet!" />
 
         <Button
             android:id="@+id/button_add_review"
@@ -56,5 +30,19 @@
             android:layout_alignParentRight="true"
             android:layout_gravity="top|end"
             android:text="Add a Review" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/reviews_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/review_list" />
+
+        <FrameLayout
+            android:id="@+id/addReviewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:visibility="gone" />
 
     </RelativeLayout>

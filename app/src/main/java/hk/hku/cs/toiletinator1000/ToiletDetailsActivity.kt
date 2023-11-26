@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
@@ -19,6 +20,7 @@ import androidx.core.widget.CompoundButtonCompat
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObjects
 import com.google.firebase.storage.storage
 
 const val REQUEST_CODE = 42
@@ -52,11 +54,6 @@ class ToiletDetailsActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val addReviewButton: Button = findViewById(R.id.button_add_review)
-        addReviewButton.setOnClickListener {
-            toggleAddReviewFragment()
-        }
-
         val toiletId = intent.getStringExtra("toiletId")
 
         val toiletDetailsLocation: TextView = findViewById(R.id.toilet_details_location)
@@ -87,6 +84,9 @@ class ToiletDetailsActivity : AppCompatActivity() {
         }.addOnFailureListener {
             Toast.makeText(this, "Failed to get toilet details", Toast.LENGTH_SHORT).show()
         }
+
+
+
 
         // Report button
         val reportButton: ImageButton = findViewById(R.id.button_report)
@@ -185,21 +185,58 @@ class ToiletDetailsActivity : AppCompatActivity() {
         }.addOnFailureListener { e ->
             Log.e("Firestore", "Error fetching user document: $e")
         }
-    }
 
+        db.collection("Review")
+            .whereEqualTo("toiletId", toiletId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val fragmentTransaction = supportFragmentManager.beginTransaction()
+                val fragment = ReviewsFragment()
 
-    private fun toggleAddReviewFragment() {
+                val mBundle = Bundle()
+                mBundle.putString("toiletId", intent.getStringExtra("toiletId").toString())
+                fragment.arguments = mBundle
+                fragmentTransaction.replace(R.id.reviews_container, fragment)
+
+                fragmentTransaction.commit()
+            }
+            .addOnFailureListener { exception ->
+                Log.d("ReviewsFragment", exception.toString())
+            }
+        // Review Fragment
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         val fragment = ReviewsFragment()
 
-        if (isAddReviewVisible) {
-            fragmentTransaction.remove(fragment)
-        } else {
-            fragmentTransaction.replace(R.id.reviews_container, fragment)
-        }
-
+        val mBundle = Bundle()
+        Log.d("toiletid", intent.getStringExtra("toiletId").toString())
+        mBundle.putString("toiletId", intent.getStringExtra("toiletId").toString())
+        fragment.arguments = mBundle
+        fragmentTransaction.replace(R.id.reviews_container, fragment)
         fragmentTransaction.commit()
-        isAddReviewVisible = !isAddReviewVisible
     }
+
+
+//    private fun toggleAddReviewFragment() {
+//        val fragmentTransaction = supportFragmentManager.beginTransaction()
+//        val fragment = ReviewsFragment()
+//
+//        val mBundle = Bundle()
+//        Log.d("toiletid", intent.getStringExtra("toiletId").toString())
+//        mBundle.putString("toiletId", intent.getStringExtra("toiletId").toString())
+//        fragment.arguments = mBundle
+//
+//        if (isAddReviewVisible) {
+//            fragmentTransaction.remove(fragment)
+//        } else {
+//            fragmentTransaction.replace(R.id.reviews_container, fragment)
+//        }
+//
+//        fragmentTransaction.commit()
+//        isAddReviewVisible = !isAddReviewVisible
+//    }
+
+}
+
+private fun Bundle.putSerializable(s: String, reviews: List<Review>) {
 
 }
