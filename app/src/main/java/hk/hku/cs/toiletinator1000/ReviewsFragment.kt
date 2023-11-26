@@ -33,7 +33,7 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
     private lateinit var viewModel: ReviewDataViewModel
     private lateinit var displayRatingTextView: TextView
     private lateinit var displayReviewDescTextView: TextView
-
+    private var isAddReviewVisible = false
     private var reviews = ArrayList<Review>()
     private val db = Firebase.firestore
 
@@ -69,6 +69,10 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
 
             if (addReviewContainer.childCount == 0) {
                 val addReviewFragment = AddReviewFragment()
+                var mBundle = Bundle()
+                mBundle.putString("toiletId", arguments?.getString("toiletId").toString())
+                addReviewFragment.arguments = mBundle
+
                 addReviewFragment.setReviewSubmissionListener(this)
 
                 fragmentManager.beginTransaction()
@@ -76,6 +80,7 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
                     .addToBackStack(null)
                     .commit()
             }
+
 
             addReviewContainer.visibility =
                 if (addReviewContainer.visibility == View.VISIBLE) View.GONE else View.VISIBLE
@@ -113,25 +118,6 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
                     reviewsAdapter.notifyDataSetChanged()
                 }
             }
-
-        buttonAddReview.setOnClickListener {
-            Log.d("Button Click","Add Review Button Click")
-
-            val fragmentManager = childFragmentManager
-
-            if (addReviewContainer.childCount == 0) {
-                val addReviewFragment = AddReviewFragment()
-                addReviewFragment.setReviewSubmissionListener(this)
-
-                fragmentManager.beginTransaction()
-                    .replace(R.id.addReviewContainer, addReviewFragment)
-                    .addToBackStack(null)
-                    .commit()
-            }
-
-            addReviewContainer.visibility =
-                if (addReviewContainer.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-        }
 
 
 

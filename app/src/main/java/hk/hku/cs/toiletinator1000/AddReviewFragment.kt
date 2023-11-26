@@ -1,6 +1,7 @@
 package hk.hku.cs.toiletinator1000
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import android.widget.EditText
 import android.widget.RatingBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -24,7 +26,9 @@ class AddReviewFragment : Fragment() {
 
     private lateinit var viewModel: ReviewDataViewModel
     private var submissionListener: ReviewSubmissionListener? = null
+    private lateinit var toiletDetailActivity: ToiletDetailsActivity
 
+    private lateinit var auth: FirebaseAuth
     val db = Firebase.firestore
 
     override fun onCreateView(
@@ -38,7 +42,9 @@ class AddReviewFragment : Fragment() {
         val reviewDescEditText = view.findViewById<EditText>(R.id.reviewDesc)
         val submitReviewButton = view.findViewById<Button>(R.id.submitReview)
 
+        toiletDetailActivity = activity as ToiletDetailsActivity
 
+        val currentUserUID = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         submitReviewButton.setOnClickListener {
             val rating = ratingBar.rating
             val reviewDescription = reviewDescEditText.text.toString()
@@ -47,14 +53,41 @@ class AddReviewFragment : Fragment() {
             Log.d("Review", "Review: $reviewDescription")
 
 //            viewModel.addReview(rating, reviewDescription)
+            val toiletId = arguments?.getString("toiletId").toString()
 
-            // Clear input fields after submission
-            ratingBar.rating = 0f
-            reviewDescEditText.text = null
+            val data = hashMapOf(
+                "userId" to currentUserUID,
+                "toiletId" to toiletId,
+                "stars" to rating,
+                "comment" to reviewDescription
+            )
 
-            hideKeyboard()
+            db.collection("Review")
+                .add(data)
+                .addOnSuccessListener { documents ->
+                    Log.d("AddReviewFragment", data.toString())
+                    // Clear input fields after submission
+                    ratingBar.rating = 0f
+                    reviewDescEditText.text = null
 
-            submissionListener?.onSubmitReview()
+                    hideKeyboard()
+
+                    submissionListener?.onSubmitReview()
+
+                    val intent = Intent(toiletDetailActivity, ToiletDetailsActivity::class.java)
+                    intent.putExtra("toiletId", toiletId)
+                    startActivity(intent)
+                }
+                .addOnFailureListener { e ->
+                    Log.d("AddReviewFragment", "Error adding new review")
+                    // Clear input fields after submission
+                    ratingBar.rating = 0f
+                    reviewDescEditText.text = null
+
+                    hideKeyboard()
+
+                    submissionListener?.onSubmitReview()
+                }
 
         }
         reviewDescEditText.setOnEditorActionListener { _, actionId, _ ->
