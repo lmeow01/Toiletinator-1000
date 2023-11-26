@@ -31,10 +31,6 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
     private lateinit var popupView: View
     private lateinit var popupWindow: PopupWindow
 
-    public interface OnFilterListener {
-        fun onFilter(minStars: Int, maxStars: Int, status: String, building: String)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
