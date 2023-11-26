@@ -90,11 +90,11 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
 
             val fragment =
                 supportFragmentManager.findFragmentById(R.id.fragment_container)
-//            if (fragment is HomeFragment) {
-//                fragment.filterToilets(minStars, maxStars, status, building)
-//            } else if (fragment is FavouritesFragment) {
-//                fragment.filterToilets(minStars, maxStars, status, building)
-//            }
+            if (fragment is HomeFragment) {
+                fragment.filterToilets(minStars, maxStars, status, building)
+            } else if (fragment is FavouritesFragment) {
+                fragment.filterToilets(minStars, maxStars, status, building)
+            }
         }
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
     /**
      * Called when the toilet data is passed from the HomeFragment.
      */
-    fun onFragmentInteraction(toilets: List<Toilet>) {
+    override fun onFragmentInteraction(toilets: List<Toilet>) {
         Log.d("MainActivity", "Toilet data received: $toilets")
         val statusSpinner: Spinner = popupView.findViewById(R.id.status_spinner)
         val buildingSpinner: Spinner = popupView.findViewById(R.id.building_spinner)

@@ -275,10 +275,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
                             .title("${toilet.floor} ${toilet.building}")
                             .snippet("Stars: ${toilet.stars}/ 5")
                     )
-
-                    if (marker != null) {
-                        marker.tag = toilet.toiletId
-                    }
+                    marker?.tag = toilet.toiletId
+                    marker?.let { allMarkers.add(it) }
                 }
 
                 map.moveCamera(
@@ -417,6 +415,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
     }
 
     public fun filterToilets(minStars: Int, maxStars: Int, status: String, building: String) {
+        Log.d("HomeFragment", "${allToilets}")
+
         // Filter by queryString
         var filteredToilets = if (queryString.isNullOrEmpty()) {
             allToilets
