@@ -6,7 +6,8 @@ data class User(
     @DocumentId
     //always assume that userId is already created upon user sign up for the app
     val userId: String = "",
-
+    val firstName: String = "",
+    val lastName: String = "",
     //used to store the array of favourite toilet Id
     val Fav: List<String> = listOf(),
     )

@@ -57,12 +57,14 @@ class SignupActivity : AppCompatActivity() {
                         val userDocumentRef = db.collection("User").document(currentUserUID)
 
                         //create a Fav empty array
-                        val favData = hashMapOf(
+                        val userData = hashMapOf(
+                            "firstName" to firstName,
+                            "lastName" to lastName,
                             "Fav" to emptyList<String>()
                         )
 
                         // Set the 'Fav' field in the user's document
-                        userDocumentRef.set(favData, SetOptions.merge())
+                        userDocumentRef.set(userData, SetOptions.merge())
                             .addOnSuccessListener {
                                 Toast.makeText(
                                     this,
