@@ -1,15 +1,19 @@
 package hk.hku.cs.toiletinator1000
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -24,6 +28,12 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObjects
+import android.widget.SearchView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.maps.model.Marker
+import java.util.Locale
+
 
 /**
  * The home page of the app with the map.
@@ -56,6 +66,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
         }
     }
 
+    //store all markers on the map
+    private lateinit var allMarkers: MutableList<Marker>
+    private lateinit var allToilets: MutableList<Toilet>
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var searchAdapter: SearchAdapter
+
+    private val SPEECH_REQUEST_CODE = 1001
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -74,7 +93,142 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
+        recyclerView = view.findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Initialize the SearchAdapter with the correct click listener
+        searchAdapter = SearchAdapter { selectedToilet ->
+            val selectedMarker = allMarkers.find { it.tag == selectedToilet.toiletId }
+            selectedMarker?.let {
+                val position = it.position
+                map.moveCamera(CameraUpdateFactory.newLatLng(position))
+                it.showInfoWindow()
+            }
+        }
+
+        recyclerView.adapter = searchAdapter
+
+        val searchView = view.findViewById<SearchView>(R.id.searchView)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query.isNullOrEmpty()) {
+                    filterMarkers("")
+                }else {
+                    filterMarkers(query)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrEmpty()) {
+                    liveSearch("")
+                }else{
+                    liveSearch(newText)
+                }
+                return true
+            }
+        })
+
         return view
+    }
+
+    private fun liveSearch(newText: String) {
+        val filteredToilets = if (newText.isNotBlank()) {
+            val filteredResults = allMarkers.filter { marker ->
+                val title = marker.title?.toLowerCase(Locale.getDefault())
+                title?.contains(newText.toLowerCase(Locale.getDefault())) ?: false
+            }
+            filteredResults.mapNotNull { marker ->
+                val toiletId = marker.tag as? String
+                allToilets.find { it.toiletId == toiletId }
+            }
+        } else {
+            allToilets // Return all toilets if query is blank
+            allMarkers.forEach { it.isVisible = true }
+            recyclerView.visibility = View.GONE
+            return
+        }
+
+        // Update RecyclerView and markers based on the filteredToilets
+        searchAdapter.updateResults(filteredToilets)
+        updateMarkersVisibility(filteredToilets)
+        updateRecyclerViewVisibility(filteredToilets)
+    }
+
+    private fun updateMarkersVisibility(filteredToilets: List<Toilet>) {
+        allMarkers.forEach { marker ->
+            val toiletId = marker.tag as? String
+            val isVisible = filteredToilets.any { it.toiletId == toiletId }
+            marker.isVisible = isVisible
+        }
+    }
+
+    private fun updateRecyclerViewVisibility(filteredToilets: List<Toilet>) {
+        recyclerView.visibility = if (filteredToilets.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    //filter and display markers based on query
+    private fun filterMarkers(query: String) {
+        Log.d("FilterMarkers", "Query: $query")
+        if (query.isNullOrBlank()) {
+            allMarkers.forEach { it.isVisible = true } // Show all markers
+            recyclerView.visibility = View.GONE // Hide RecyclerView when showing all markers
+            return
+        }
+
+        // Filter allMarkers based on the query and update the map markers accordingly
+        val filteredMarkers = allMarkers.filter {
+            val title = it.title?.toLowerCase()
+            Log.d("FilterMarkers", "Marker title: ${it.title}")
+            title?.contains(query.toLowerCase()) ?: false
+        }
+        // Show filtered markers on the map
+        // For example, hide all markers and then show only the filtered ones
+        allMarkers.forEach { it.isVisible = false }
+        filteredMarkers.forEach { it.isVisible = true }
+        Log.d("FilterMarkers", "Filtered markers count: ${filteredMarkers.size}")
+
+        // Check if there are filtered markers and show/hide RecyclerView accordingly
+        if (filteredMarkers.isNotEmpty()) {
+            recyclerView.visibility = View.VISIBLE
+        } else {
+            recyclerView.visibility = View.GONE
+        }
+
+    }
+
+    //Voice Search Functionality
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val voiceSearchButton = view.findViewById<ImageButton>(R.id.voiceSearchButton)
+        voiceSearchButton.setOnClickListener {
+            // Implement voice search logic here
+            startVoiceRecognition()
+        }
+    }
+
+    private fun startVoiceRecognition() {
+        // Start listening for voice input and handle the recognized text for search
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now")
+        startActivityForResult(intent, SPEECH_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SPEECH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!matches.isNullOrEmpty()) {
+                val query = matches[0].toString()
+                filterMarkers(query)
+
+                // Set the recognized query text in the SearchView
+                val searchView = view?.findViewById<SearchView>(R.id.searchView)
+                searchView?.setQuery(query, true)
+            }
+        }
     }
 
     /**
@@ -109,28 +263,23 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
             .get()
             .addOnSuccessListener { documents ->
                 Log.d("HomeFragment", documents.toString())
-                toilets = documents.toObjects()
+                var toilets: List<Toilet> = documents.toObjects();
+
                 Log.d("HomeFragment", "Toilets: ${toilets.size}")
 
-                // Pass toilets to MainActivity
-                onFragmentInteractionListener.onFragmentInteraction(toilets)
+                allMarkers = mutableListOf()
+                allToilets = toilets.toMutableList()
 
-                toilets.forEach(fun(toilet: Toilet) {
-                    Log.d(
-                        "HomeFragment",
-                        "Toilet: ${toilet.toiletId} ${toilet.floor} ${toilet.building} ${toilet.latitude} ${toilet.longitude} ${toilet.stars} ${toilet.status}"
-                    )
-
+                toilets.forEach { toilet ->
+                    Log.d("HomeFragment", "Toilet: ${toilet.toiletId} ${toilet.floor} ${toilet.building} ${toilet.latitude} ${toilet.longitude} ${toilet.stars} ${toilet.status}")
                     val marker = map.addMarker(
                         MarkerOptions().position(LatLng(toilet.latitude, toilet.longitude))
                             .title("${toilet.floor} ${toilet.building}")
-                            .snippet("Stars: ${toilet.stars}/ 5")
+                            .snippet("Stars: ${toilet.stars}/5")
                     )
-
-                    if (marker != null) {
-                        marker.tag = toilet.toiletId
-                    }
-                })
+                    marker?.tag = toilet.toiletId
+                    marker?.let { allMarkers.add(it) }
+                }
 
                 map.moveCamera(
                     CameraUpdateFactory.newLatLng(
@@ -234,6 +383,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback, OnMyLocationButtonClickList
     override fun onMyLocationClick(location: Location) {
         Toast.makeText(parentActivity, "Current location:\n$location", Toast.LENGTH_SHORT).show()
     }
+
 
     /**
      * Enables the My Location layer if the fine location permission has been granted.
