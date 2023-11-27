@@ -74,9 +74,32 @@ class AddReviewFragment : Fragment() {
 
                     submissionListener?.onSubmitReview()
 
-                    val intent = Intent(toiletDetailActivity, ToiletDetailsActivity::class.java)
-                    intent.putExtra("toiletId", toiletId)
-                    startActivity(intent)
+                    val total = 0
+                    val count = 0
+
+                    db.collection("Toilet").document(toiletId)
+                        .get()
+                        .addOnSuccessListener { document ->
+                            val toilet = document.toObject(Toilet::class.java)
+                            var stars: Double = toilet!!.stars
+                            db.collection("Review")
+                                .whereEqualTo("toiletId", toiletId)
+                                .get()
+                                .addOnSuccessListener { documents->
+                                    val reviewList = documents.toObjects(Review::class.java)
+                                    stars = stars * (reviewList.size - 1)
+                                    stars += rating
+                                    stars /= reviewList.size
+
+                                    db.collection("Toilet").document(toiletId)
+                                        .update("stars", stars)
+                                        .addOnSuccessListener {
+                                            val intent = Intent(toiletDetailActivity, ToiletDetailsActivity::class.java)
+                                            intent.putExtra("toiletId", toiletId)
+                                            startActivity(intent)
+                                        }
+                                }
+                        }
                 }
                 .addOnFailureListener { e ->
                     Log.d("AddReviewFragment", "Error adding new review")
