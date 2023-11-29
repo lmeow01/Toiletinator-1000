@@ -1,6 +1,7 @@
 package hk.hku.cs.toiletinator1000
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -24,6 +26,8 @@ private const val ARG_PARAM2 = "param2"
  * Use the [ReviewsFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
+
+
 class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -36,6 +40,8 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
     private var isAddReviewVisible = false
     private var reviews = ArrayList<Review>()
     private val db = Firebase.firestore
+    private lateinit var auth: FirebaseAuth
+    private lateinit var parentActivity: ToiletDetailsActivity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +50,8 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
             param2 = it.getString(ARG_PARAM2)
         }
 
-
+        auth = FirebaseAuth.getInstance()
+        parentActivity = activity as ToiletDetailsActivity
     }
 
 
@@ -87,24 +94,9 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
         }
 
 
-//        viewModel = ViewModelProvider(requireActivity()).get(ReviewDataViewModel::class.java)
-//
-//        viewModel.reviewDescriptionsLiveData.observe(viewLifecycleOwner, { reviewDescriptions ->
-//            val displayReviewDescTextView = view.findViewById<TextView>(R.id.displayReviewDesc)
-//            val formattedData = formatReviewData(viewModel.ratingsLiveData.value, reviewDescriptions)
-//            Log.d("Data2", "Data2:$formattedData")
-//            displayReviewDescTextView.text = formattedData ?: "No reviews available"
-//        })
-
-//        if (reviews.size == 0) {
-//            view.findViewById<TextView>(R.id.no_reviews_text).visibility = View.VISIBLE
-//            return view
-//        }
-
-
         Log.d("REVIEWSSSSSSS", reviews.size.toString())
         val recyclerView: RecyclerView = view.findViewById(R.id.reviews_recycler_view)
-        val reviewsAdapter = ReviewsAdapter(reviews)
+        val reviewsAdapter = ReviewsAdapter(this, reviews)
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
         recyclerView.adapter = reviewsAdapter
 
@@ -173,16 +165,20 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
     }
 }
 
-class ReviewsAdapter(private val mReviews: ArrayList<Review>) :
+class ReviewsAdapter(val fragment: Fragment, private val mReviews: ArrayList<Review>) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
+
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val rating: TextView
         val comment: TextView
-
+        val userId: TextView
+        val auth: FirebaseAuth
         init {
             rating = view.findViewById(R.id.displayRating)
             comment = view.findViewById(R.id.displayReviewDesc)
+            userId = view.findViewById(R.id.displayUserId)
+            auth = FirebaseAuth.getInstance()
             // Can add review modifying section in the future
         }
     }
@@ -191,12 +187,49 @@ class ReviewsAdapter(private val mReviews: ArrayList<Review>) :
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.review_list, parent, false)
         return ViewHolder(view)
+
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val review = mReviews[position]
         holder.rating.text = review.stars.toString()
         holder.comment.text = review.comment.toString()
+        holder.userId.text = review.userId.toString()
+
+        if (holder.userId.text != holder.auth.uid) {
+            val rootView = holder.rating.rootView;
+            rootView.setBackgroundColor(Color.parseColor("#ffffff"))
+        }
+
+        val addReviewContainer = fragment.view?.findViewById<FrameLayout>(R.id.addReviewContainer)
+        holder.itemView.setOnClickListener {
+            if (holder.userId.text == holder.auth.uid) {
+                Log.d("Button Click","Modify Review Button Click")
+
+                val fragmentManager = fragment.childFragmentManager
+
+                if (addReviewContainer?.childCount == 0) {
+                    val modifyReviewFragment = ModifyReviewFragment()
+                    var mBundle = Bundle()
+                    mBundle.putString("toiletId", review.toiletId.toString())
+                    mBundle.putString("reviewId", review.reviewId.toString())
+                    mBundle.putString("oriStars", review.stars.toString())
+                    mBundle.putString("oriComment", review.comment.toString())
+                    modifyReviewFragment.arguments = mBundle
+
+//                    addReviewFragment.setReviewSubmissionListener(fragment)
+
+                    fragmentManager.beginTransaction()
+                        .replace(R.id.addReviewContainer, modifyReviewFragment)
+                        .addToBackStack(null)
+                        .commit()
+                }
+
+
+                addReviewContainer?.visibility =
+                    if (addReviewContainer?.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            }
+        }
     }
 
 
