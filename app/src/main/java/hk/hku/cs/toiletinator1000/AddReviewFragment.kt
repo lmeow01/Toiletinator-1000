@@ -27,9 +27,12 @@ class AddReviewFragment : Fragment() {
     private lateinit var viewModel: ReviewDataViewModel
     private var submissionListener: ReviewSubmissionListener? = null
     private lateinit var toiletDetailActivity: ToiletDetailsActivity
+    private lateinit var ratingBar: RatingBar
+    private lateinit var reviewDescEditText: EditText
 
     private lateinit var auth: FirebaseAuth
     val db = Firebase.firestore
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,19 +41,21 @@ class AddReviewFragment : Fragment() {
         val view = inflater.inflate(R.layout.add_review, container, false)
         viewModel = ViewModelProvider(requireActivity()).get(ReviewDataViewModel::class.java)
 
-        val ratingBar = view.findViewById<RatingBar>(R.id.ratingBar)
-        val reviewDescEditText = view.findViewById<EditText>(R.id.reviewDesc)
+        ratingBar = view.findViewById(R.id.ratingBar)
+        reviewDescEditText = view.findViewById(R.id.reviewDesc)
         val submitReviewButton = view.findViewById<Button>(R.id.submitReview)
 
         toiletDetailActivity = activity as ToiletDetailsActivity
 
         val currentUserUID = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
         submitReviewButton.setOnClickListener {
             val rating = ratingBar.rating
             val reviewDescription = reviewDescEditText.text.toString()
 
             Log.d("Rating", "Rating: $rating")
             Log.d("Review", "Review: $reviewDescription")
+
 
 //            viewModel.addReview(rating, reviewDescription)
             val toiletId = arguments?.getString("toiletId").toString()
@@ -90,9 +95,11 @@ class AddReviewFragment : Fragment() {
                                     stars = stars * (reviewList.size - 1)
                                     stars += rating
                                     stars /= reviewList.size
+                                    val formattedStars = String.format("%.2f", stars)
+
 
                                     db.collection("Toilet").document(toiletId)
-                                        .update("stars", stars)
+                                        .update("stars", formattedStars.toDouble())
                                         .addOnSuccessListener {
                                             val intent = Intent(toiletDetailActivity, ToiletDetailsActivity::class.java)
                                             intent.putExtra("toiletId", toiletId)
@@ -123,6 +130,8 @@ class AddReviewFragment : Fragment() {
 
         return view
     }
+
+
 
     private fun hideKeyboard(){
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

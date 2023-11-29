@@ -1,6 +1,8 @@
 package hk.hku.cs.toiletinator1000
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -34,14 +37,13 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
     private var param2: String? = null
 
     //for displaying ratings and descriptions
-    private lateinit var viewModel: ReviewDataViewModel
-    private lateinit var displayRatingTextView: TextView
-    private lateinit var displayReviewDescTextView: TextView
-    private var isAddReviewVisible = false
+
     private var reviews = ArrayList<Review>()
     private val db = Firebase.firestore
     private lateinit var auth: FirebaseAuth
     private lateinit var parentActivity: ToiletDetailsActivity
+    private lateinit var reviewsAdapter: ReviewsAdapter
+    private var currentUserId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +69,13 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
         val buttonAddReview = view.findViewById<Button>(R.id.button_add_review)
         val addReviewContainer = view.findViewById<FrameLayout>(R.id.addReviewContainer)
 
-
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            currentUserId = currentUser.uid
+        } else {
+            Log.d("Failed", "Find User : $currentUser")
+        }
 
         buttonAddReview.setOnClickListener {
             Log.d("Button Click","Add Review Button Click")
@@ -96,7 +104,7 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
 
         Log.d("REVIEWSSSSSSS", reviews.size.toString())
         val recyclerView: RecyclerView = view.findViewById(R.id.reviews_recycler_view)
-        val reviewsAdapter = ReviewsAdapter(this, reviews)
+        reviewsAdapter = ReviewsAdapter(this, reviews, requireContext(), currentUserId, {review -> deleteReview(review) })
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
         recyclerView.adapter = reviewsAdapter
 
@@ -104,6 +112,7 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
             .whereEqualTo("toiletId", arguments?.getString("toiletId").toString())
             .get()
             .addOnSuccessListener { documents ->
+                reviews.clear()
                 val reviewList = documents.toObjects(Review::class.java)
                 for (review in reviewList){
                     reviews.add(review)
@@ -111,50 +120,68 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
                 }
             }
 
-
-
-
-
         return view
     }
 
 
-//    private fun toggleAddReviewFragment() {
-//        val fragmentTransaction = supportFragmentManager.beginTransaction()
-//        val fragment = ReviewsFragment()
-//
-//        val mBundle = Bundle()
-//        Log.d("toiletid", intent.getStringExtra("toiletId").toString())
-//        mBundle.putString("toiletId", intent.getStringExtra("toiletId").toString())
-//        fragment.arguments = mBundle
-//
-//        if (isAddReviewVisible) {
-//            fragmentTransaction.remove(fragment)
-//        } else {
-//            fragmentTransaction.replace(R.id.reviews_container, fragment)
-//        }
-//
-//        fragmentTransaction.commit()
-//        isAddReviewVisible = !isAddReviewVisible
-//    }
 
     override fun onSubmitReview() {
         val addReviewContainer = view?.findViewById<FrameLayout>(R.id.addReviewContainer)
         addReviewContainer?.visibility = View.GONE
     }
 
-    private fun formatReviewData(ratings: List<Float>?, reviewDescriptions: List<String>?): String {
-        val formattedReviews = StringBuilder()
+    private fun deleteReview(review: Review) {
+        val userId = review.userId
+        val toiletId = review.toiletId
+        val comment = review.comment
 
-        if (ratings != null && reviewDescriptions != null) {
-            val size = minOf(ratings.size, reviewDescriptions.size)
-            for (i in 0 until size) {
-                formattedReviews.append("Rating: ${ratings[i]}\nReview: ${reviewDescriptions[i]}\n\n")
+        db.collection("Review")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("toiletId", toiletId)
+            .whereEqualTo("comment", comment)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot.documents) {
+                    document.reference.delete()
+                        .addOnSuccessListener {
+                            // Delete successful, remove the review from the local list and update the RecyclerView
+                            val reviewToDelete = document.toObject(Review::class.java)
+                            reviewToDelete?.let { review ->
+                                val position = reviews.indexOf(review)
+                                if (position != -1) {
+                                    reviews.removeAt(position)
+                                }
+                            }
+
+                            // Clear and re-populate the list after deletion
+                            reviews.clear()
+                            // Fetch updated data from Firestore
+                            fetchReviewsFromFirestore()
+                        }
+                        .addOnFailureListener { exception ->
+                            // Handle deletion failure
+                            Log.e("Delete Review", "Error deleting review: $exception")
+                        }
+                }
             }
-        }
-
-        return formattedReviews.toString()
+            .addOnFailureListener { exception ->
+                // Handle Firestore query failure
+                Log.e("Query Review", "Error getting review for deletion: $exception")
+            }
     }
+
+
+    private fun fetchReviewsFromFirestore() {
+        db.collection("Review")
+            .whereEqualTo("toiletId", arguments?.getString("toiletId").toString())
+            .get()
+            .addOnSuccessListener { documents ->
+                val reviewList = documents.toObjects(Review::class.java)
+                reviews.addAll(reviewList)
+                reviewsAdapter.notifyDataSetChanged()
+            }
+    }
+
 
     companion object {
         // TODO: Rename and change types and number of parameters
@@ -165,18 +192,27 @@ class ReviewsFragment : Fragment(), AddReviewFragment.ReviewSubmissionListener {
     }
 }
 
-class ReviewsAdapter(val fragment: Fragment, private val mReviews: ArrayList<Review>) :
+class ReviewsAdapter(
+    val fragment: Fragment,
+    private val mReviews: ArrayList<Review>,
+    private val context: Context,
+    private val currentUserId: String,
+    private val onDeleteClickListener: (Review) -> Unit) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
 
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val rating: TextView
         val comment: TextView
+        val deleteButton: ImageButton
+
         val userId: TextView
         val auth: FirebaseAuth
         init {
             rating = view.findViewById(R.id.displayRating)
             comment = view.findViewById(R.id.displayReviewDesc)
+            deleteButton = view.findViewById(R.id.delete_review_button)
+         // Can add review modifying section in the future
             userId = view.findViewById(R.id.displayUserId)
             auth = FirebaseAuth.getInstance()
             // Can add review modifying section in the future
@@ -230,11 +266,44 @@ class ReviewsAdapter(val fragment: Fragment, private val mReviews: ArrayList<Rev
                     if (addReviewContainer?.visibility == View.VISIBLE) View.GONE else View.VISIBLE
             }
         }
+
+        // Check if the review is submitted by the current user
+        val isCurrentUserReview = review.userId == currentUserId
+
+        // Show/hide delete buttons based on whether it's the current user's review
+        if (isCurrentUserReview) {
+            holder.deleteButton.visibility = View.VISIBLE
+
+            // Set click listener for delete button
+            holder.deleteButton.setOnClickListener {
+                // Show the delete confirmation dialog
+                showDeleteConfirmationDialog(review)
+            }
+
+        } else {
+            holder.deleteButton.visibility = View.GONE
+        }
     }
 
 
     override fun getItemCount(): Int {
         return mReviews.size
+    }
+
+    private fun showDeleteConfirmationDialog(review: Review) {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        alertDialogBuilder.apply {
+            setTitle("Delete Review")
+            setMessage("Are you sure you want to delete this review?")
+            setPositiveButton("Delete") { _, _ ->
+                onDeleteClickListener.invoke(review)
+            }
+            setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+        }
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
     }
 }
 
