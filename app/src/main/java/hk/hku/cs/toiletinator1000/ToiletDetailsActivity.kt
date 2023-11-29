@@ -1,36 +1,48 @@
 package hk.hku.cs.toiletinator1000
 
+import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
-import android.widget.Button
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.BaseAdapter
 import android.widget.CheckBox
+import android.widget.Gallery
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.widget.CompoundButtonCompat
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.toObjects
 import com.google.firebase.storage.storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 const val REQUEST_CODE = 42
 
 class ToiletDetailsActivity : AppCompatActivity() {
 
     private var isAddReviewVisible = false
-
     private val storage = Firebase.storage
     private val db = Firebase.firestore
+    private lateinit var popupView: View
+    private lateinit var popupWindow: PopupWindow
 
     // An activity result launcher for selecting images from the gallery
     private val uploadImageFromGallery =
@@ -60,33 +72,64 @@ class ToiletDetailsActivity : AppCompatActivity() {
         val toiletDetailsStars: TextView = findViewById(R.id.toilet_details_stars)
         val toiletDetailsStatus: TextView = findViewById(R.id.toilet_details_status)
 
+        // Image gallery setup
+        val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        popupView = inflater.inflate(R.layout.gallery_popup, null)
+        popupWindow = PopupWindow(
+            popupView,
+            Toolbar.LayoutParams.MATCH_PARENT,
+            Toolbar.LayoutParams.WRAP_CONTENT,
+            true,
+        )
+        val toiletDetailsImage: ImageView = findViewById(R.id.toilet_details_image)
+        toiletDetailsImage.setOnClickListener {
+            popupWindow.showAsDropDown(it)
+        }
+
+        if (toiletId == null) {
+            Toast.makeText(this, "Failed to get toilet", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Query the toilet with the given toiletId
-        db.collection("Toilet").document(toiletId!!).get().addOnSuccessListener { document ->
-            val toilet = document.toObject(Toilet::class.java)
-            if (toilet != null) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val toilet = db.collection("Toilet").document(toiletId!!).get().await()
+                .toObject(Toilet::class.java)
+            if (toilet == null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@ToiletDetailsActivity,
+                        "Failed to get toilet",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                return@launch
+            }
+
+            val images = toilet.images.filter { it != "" }
+            val imageRefs = images.map { storage.reference.child(it) }
+            val ONE_MEGABYTE: Long = 1024 * 1024
+            val bitmaps =
+                imageRefs.map { async { it.getBytes(ONE_MEGABYTE).await() } }?.map { it.await() }
+                    ?.map { BitmapFactory.decodeByteArray(it, 0, it.size) }
+
+            withContext(Dispatchers.Main) {
                 toiletDetailsLocation.text = toilet.floor + " " + toilet.building
                 toiletDetailsStars.text = "Stars: ${toilet.stars} / 5"
                 toiletDetailsStatus.text = "Status: ${toilet.status}"
 
-                // Load the first image of the toilet
-                val toiletDetailsImage: ImageView = findViewById(R.id.toilet_details_image)
-                if (toilet.images.size > 0 && toilet.images[0] != "") {
-                    val imageRef = storage.reference.child(toilet.images[0])
-                    val ONE_MEGABYTE: Long = 1024 * 1024
-                    imageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener { bytes ->
-                        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        toiletDetailsImage.setImageBitmap(bitmap)
-                    }.addOnFailureListener {
-                        Log.e("ToiletDetailsActivity", "Failed to get image")
-                    }
+                val gallery: Gallery = popupView.findViewById(R.id.gallery)
+                gallery.adapter = GalleryAdapter(this@ToiletDetailsActivity, bitmaps!!)
+                if (bitmaps.isEmpty()) {
+                    // Show "No images" text
+                    val noImagesText: TextView = popupView.findViewById(R.id.no_images_text)
+                    noImagesText.visibility = View.VISIBLE
+                } else {
+                    // Set toilet details image to the first image
+                    toiletDetailsImage.setImageBitmap(bitmaps[0])
                 }
             }
-        }.addOnFailureListener {
-            Toast.makeText(this, "Failed to get toilet details", Toast.LENGTH_SHORT).show()
         }
-
-
-
 
         // Report button
         val reportButton: ImageButton = findViewById(R.id.button_report)
@@ -140,7 +183,6 @@ class ToiletDetailsActivity : AppCompatActivity() {
                         )
                     )
                 }
-
 
                 favouriteCheckbox.setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
@@ -208,8 +250,8 @@ class ToiletDetailsActivity : AppCompatActivity() {
         val fragment = ReviewsFragment()
 
         val mBundle = Bundle()
-        Log.d("toiletid", intent.getStringExtra("toiletId").toString())
-        mBundle.putString("toiletId", intent.getStringExtra("toiletId").toString())
+        Log.d("toiletid", toiletId.toString())
+        mBundle.putString("toiletId", toiletId.toString())
         fragment.arguments = mBundle
         fragmentTransaction.replace(R.id.reviews_container, fragment)
         fragmentTransaction.commit()
@@ -235,6 +277,31 @@ class ToiletDetailsActivity : AppCompatActivity() {
 //        isAddReviewVisible = !isAddReviewVisible
 //    }
 
+}
+
+class GalleryAdapter(private val context: Context, private val images: List<Bitmap>) :
+    BaseAdapter() {
+
+    override fun getCount(): Int {
+        return images.size
+    }
+
+    override fun getItem(position: Int): Any {
+        return images[position]
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun getView(position: Int, view: View?, parent: android.view.ViewGroup?): View {
+        val imageView = ImageView(context)
+        imageView.setImageBitmap(images[position])
+        imageView.layoutParams = Gallery.LayoutParams(300, 300)
+        imageView.scaleType = ImageView.ScaleType.FIT_XY
+
+        return imageView
+    }
 }
 
 private fun Bundle.putSerializable(s: String, reviews: List<Review>) {

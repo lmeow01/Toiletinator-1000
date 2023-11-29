@@ -23,7 +23,7 @@
             android:id="@+id/toilet_details_image"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:src="@drawable/ic_launcher_background" />
+            android:src="@drawable/no_image" />
 
         <LinearLayout
             android:layout_width="wrap_content"
