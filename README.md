@@ -12,3 +12,8 @@ and add it to `local.properties` file as `MAPS_API_KEY=your_key`. You may also t
 
 You can emulate location in Android Studio heading to your device's `Extended Controls` and setting
 a location there.
+
+### 3. Firebase
+
+Firebase Firestore, Authentication, and Storage are used in this project. You need to create your 
+own Firebase project and add `google-services.json` file to `app` directory.
